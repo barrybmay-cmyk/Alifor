@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { Avatar, RoleBadge, Btn, Input, Select, Modal } from '../components/UI'
 import AdminConsole from './AdminConsole'
+import ThemeBuilder from '../components/ThemeBuilder'
 
 const RACI_OPTIONS = ['R', 'A', 'C', 'I', '']
 const RACI_LABELS = { R: 'Responsible', A: 'Accountable', C: 'Consulted', I: 'Informed' }
@@ -40,6 +41,7 @@ export default function DashboardPage() {
   const { profile: currentUser, signOut } = useAuth()
   const [view, setView] = useState('strategy')
   const [showAdmin, setShowAdmin] = useState(false)
+  const [showThemeBuilder, setShowThemeBuilder] = useState(false)
   const [users, setUsers] = useState([])
   const [goals, setGoals] = useState([])
   const [loading, setLoading] = useState(true)
@@ -212,8 +214,9 @@ export default function DashboardPage() {
               <div style={{ fontSize: 10, color: '#475569' }}>{currentUser?.title}</div>
             </div>
           </div>
-<button onClick={() => setShowThemeBuilder(true)} style={{ width: '100%', padding: '7px 12px', borderRadius: 8, background: '#1e293b', border: 'none', color: '#2dd4bf', fontSize: 12, cursor: 'pointer', textAlign: 'left', marginBottom: 6 }}>🎨 Visual Builder</button>
-<button onClick={signOut} style={{ width: '100%', padding: '7px 12px', borderRadius: 8, background: '#1e293b', border: 'none', color: '#64748b', fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>← Sign out</button>        </div>
+          <button onClick={() => setShowThemeBuilder(true)} style={{ width: '100%', padding: '7px 12px', borderRadius: 8, background: '#1e293b', border: 'none', color: '#2dd4bf', fontSize: 12, cursor: 'pointer', textAlign: 'left', marginBottom: 6 }}>🎨 Visual Builder</button>
+          <button onClick={signOut} style={{ width: '100%', padding: '7px 12px', borderRadius: 8, background: '#1e293b', border: 'none', color: '#64748b', fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>← Sign out</button>
+        </div>
       </div>
 
       {/* Main */}
@@ -396,6 +399,7 @@ export default function DashboardPage() {
       </div>
 
       {showAdmin && isAdmin && <AdminConsole onClose={() => { setShowAdmin(false); fetchAll() }} />}
+      {showThemeBuilder && <ThemeBuilder onClose={() => setShowThemeBuilder(false)} />}
 
       {modal === 'addGoal' && (
         <Modal title="New Strategic Goal" onClose={() => setModal(null)}>
