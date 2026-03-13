@@ -212,8 +212,8 @@ export default function DashboardPage() {
               <div style={{ fontSize: 10, color: '#475569' }}>{currentUser?.title}</div>
             </div>
           </div>
-          <button onClick={signOut} style={{ width: '100%', padding: '7px 12px', borderRadius: 8, background: '#1e293b', border: 'none', color: '#64748b', fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>← Sign out</button>
-        </div>
+<button onClick={() => setShowThemeBuilder(true)} style={{ width: '100%', padding: '7px 12px', borderRadius: 8, background: '#1e293b', border: 'none', color: '#2dd4bf', fontSize: 12, cursor: 'pointer', textAlign: 'left', marginBottom: 6 }}>🎨 Visual Builder</button>
+<button onClick={signOut} style={{ width: '100%', padding: '7px 12px', borderRadius: 8, background: '#1e293b', border: 'none', color: '#64748b', fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>← Sign out</button>        </div>
       </div>
 
       {/* Main */}
