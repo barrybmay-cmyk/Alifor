@@ -1,10 +1,25 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
   <defs>
-    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#0a7c6e"/>
-      <stop offset="100%" style="stop-color:#0e6ba8"/>
+    <linearGradient id="leafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4815E1"/>
+      <stop offset="50%" style="stop-color:#B841E3"/>
+      <stop offset="100%" style="stop-color:#DF346D"/>
+    </linearGradient>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f5f3ff"/>
+      <stop offset="100%" style="stop-color:#fdf2f8"/>
+    </linearGradient>
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4815E1"/>
+      <stop offset="100%" style="stop-color:#DF346D"/>
     </linearGradient>
   </defs>
-  <rect width="32" height="32" rx="8" fill="url(#g)"/>
-  <text x="16" y="22" text-anchor="middle" font-size="18" fill="white" font-family="serif">A</text>
+  <!-- Background circle -->
+  <circle cx="50" cy="50" r="48" fill="url(#bgGrad)"/>
+  <!-- Ring border -->
+  <circle cx="50" cy="50" r="46" fill="none" stroke="url(#ringGrad)" stroke-width="4"/>
+  <!-- Maple leaf -->
+  <path d="M50 12 L54 22 L64 18 L60 28 L72 24 L66 34 L78 34 L70 42 L82 46 L70 48 L74 58 L62 54 L58 68 L54 62 L54 82 L46 82 L46 62 L42 68 L38 54 L26 58 L30 48 L18 46 L30 42 L22 34 L34 34 L28 24 L40 28 L36 18 L46 22 Z" fill="url(#leafGrad)" opacity="0.92"/>
+  <!-- Heartbeat line -->
+  <polyline points="22,50 30,50 34,42 38,58 42,46 46,54 50,50 54,50 58,44 62,56 66,50 78,50" fill="none" stroke="#a5f3fc" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
