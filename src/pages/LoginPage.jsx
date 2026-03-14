@@ -25,19 +25,19 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg,#f0fdf9 0%,#eff6ff 50%,#f5f3ff 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg,#f5f3ff 0%,#fdf2f8 50%,#eef2ff 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       {/* Decorative blobs */}
-      <div style={{ position: 'fixed', top: -120, right: -120, width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle,#0a7c6e18,transparent 70%)', pointerEvents: 'none' }} />
-      <div style={{ position: 'fixed', bottom: -80, left: -80, width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle,#0e6ba818,transparent 70%)', pointerEvents: 'none' }} />
+      <div style={{ position: 'fixed', top: -120, right: -120, width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle,#4815E118,transparent 70%)', pointerEvents: 'none' }} />
+      <div style={{ position: 'fixed', bottom: -80, left: -80, width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle,#DF346D18,transparent 70%)', pointerEvents: 'none' }} />
 
-      <div style={{ background: '#fff', borderRadius: 20, padding: '44px 44px 36px', width: 420, boxShadow: '0 24px 80px rgba(15,23,42,0.12)', border: '1px solid #e2e8f0', position: 'relative' }}>
+      <div style={{ background: '#fff', borderRadius: 20, padding: '44px 44px 36px', width: 420, boxShadow: '0 24px 80px rgba(72,21,225,0.12)', border: '1px solid #ede9fe', position: 'relative' }}>
 
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 56, height: 56, borderRadius: 16, background: 'linear-gradient(135deg,#0a7c6e,#0e6ba8)', marginBottom: 14, boxShadow: '0 8px 24px rgba(10,124,110,0.3)' }}>
-            <span style={{ fontSize: 26, color: '#fff' }}>⊕</span>
+          <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 72, height: 72, borderRadius: 20, background: 'linear-gradient(135deg,#4815E1,#B841E3,#DF346D)', marginBottom: 14, boxShadow: '0 8px 24px rgba(184,65,227,0.35)' }}>
+            <img src="/alifor-logo.svg" alt="Alifor" style={{ height: 20, filter: 'brightness(0) invert(1)' }} />
           </div>
-          <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 28, fontWeight: 700, background: 'linear-gradient(135deg,#0a7c6e,#0e6ba8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Alifor</div>
+          <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 28, fontWeight: 700, background: 'linear-gradient(135deg,#4815E1,#B841E3,#DF346D)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Alifor</div>
           <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4, letterSpacing: 1.4, textTransform: 'uppercase', fontWeight: 500 }}>Clinical Operating System</div>
         </div>
 
