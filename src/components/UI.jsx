@@ -23,7 +23,7 @@ export function RoleBadge({ role }) {
 
 export function Btn({ children, onClick, variant = 'primary', small, disabled, fullWidth, type = 'button', style: sx = {} }) {
   const v = {
-    primary:   { background: 'linear-gradient(135deg,#0a7c6e,#0e6ba8)', color: '#fff', boxShadow: '0 2px 8px rgba(10,124,110,0.2)', border: 'none' },
+    primary:   { background: 'linear-gradient(135deg,#4815E1,#B841E3,#DF346D)', color: '#fff', boxShadow: '0 2px 8px rgba(184,65,227,0.25)', border: 'none' },
     secondary: { background: '#f1f5f9', color: '#475569', border: '1.5px solid #e2e8f0' },
     ghost:     { background: 'transparent', color: '#94a3b8', border: '1.5px dashed #e2e8f0' },
     danger:    { background: '#fef2f2', color: '#dc2626', border: '1.5px solid #fecaca' },
@@ -44,7 +44,7 @@ export function Input({ label, value, onChange, placeholder, type = 'text', erro
       {label && <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#64748b', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.8 }}>{label}</label>}
       <input autoFocus={autoFocus} type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
         onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
-        style={{ width: '100%', padding: '10px 13px', background: '#f8fafc', border: `1.5px solid ${error ? '#fca5a5' : focused ? '#0a7c6e' : '#e2e8f0'}`, borderRadius: 8, color: '#0f172a', fontSize: 14, outline: 'none', boxSizing: 'border-box' }} />
+        style={{ width: '100%', padding: '10px 13px', background: '#f8fafc', border: `1.5px solid ${error ? '#fca5a5' : focused ? '#4815E1' : '#e2e8f0'}`, borderRadius: 8, color: '#0f172a', fontSize: 14, outline: 'none', boxSizing: 'border-box' }} />
       {error && <div style={{ fontSize: 11, color: '#dc2626', marginTop: 4 }}>{error}</div>}
     </div>
   )
@@ -69,7 +69,7 @@ export function Modal({ title, subtitle, onClose, children, width = 480 }) {
         <div style={{ marginBottom: 24 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
-              <div style={{ fontSize: 17, fontWeight: 700, color: '#0f172a', fontFamily: "'Playfair Display',serif" }}>{title}</div>
+              <div style={{ fontSize: 17, fontWeight: 700, color: '#0f172a', fontFamily: "'Plus Jakarta Sans',serif" }}>{title}</div>
               {subtitle && <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 3 }}>{subtitle}</div>}
             </div>
             <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: 20, cursor: 'pointer', padding: 0, lineHeight: 1, marginLeft: 16 }}>×</button>
