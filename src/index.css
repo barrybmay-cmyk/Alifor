@@ -1,9 +1,9 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  font-family: 'Outfit', 'Segoe UI', sans-serif;
-  background: #f8fafc;
-  color: #0f172a;
+  font-family: 'Plus Jakarta Sans', 'DM Sans', sans-serif;
+  background: #f5f3ff;
+  color: #1e1035;
   -webkit-font-smoothing: antialiased;
 }
 
