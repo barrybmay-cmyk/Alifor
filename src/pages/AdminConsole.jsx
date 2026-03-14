@@ -95,7 +95,7 @@ export default function AdminConsole({ onClose }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg,#0a7c6e,#0e6ba8)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>🛡</div>
             <div>
-              <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 16, color: '#f1f5f9', fontWeight: 700 }}>Admin Console</div>
+              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 16, color: '#f1f5f9', fontWeight: 700 }}>Admin Console</div>
               <div style={{ fontSize: 11, color: '#475569' }}>Alifor · User & Access Management</div>
             </div>
           </div>
@@ -106,7 +106,7 @@ export default function AdminConsole({ onClose }) {
         <div style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', padding: '12px 28px', display: 'flex', gap: 28, alignItems: 'center' }}>
           {[['Total', stats.total, '#0e6ba8'], ['Active', stats.active, '#0a7c6e'], ['Admins', stats.admins, '#7c3aed']].map(([l, v, c]) => (
             <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 20, fontWeight: 800, color: c, fontFamily: "'Playfair Display',serif" }}>{v}</span>
+              <span style={{ fontSize: 20, fontWeight: 800, color: c, fontFamily: "'Plus Jakarta Sans',sans-serif" }}>{v}</span>
               <span style={{ fontSize: 12, color: '#94a3b8', fontWeight: 500 }}>{l} Users</span>
             </div>
           ))}
