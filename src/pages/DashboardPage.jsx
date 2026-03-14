@@ -1,19 +1,18 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
+import { useTheme } from '../lib/ThemeContext'
 import { Avatar, RoleBadge, Btn, Input, Select, Modal } from '../components/UI'
 import AdminConsole from './AdminConsole'
 import ThemeBuilder from '../components/ThemeBuilder'
 
 const RACI_OPTIONS = ['R', 'A', 'C', 'I', '']
 const RACI_LABELS = { R: 'Responsible', A: 'Accountable', C: 'Consulted', I: 'Informed' }
-const RACI_COLORS = { R: '#0a7c6e', A: '#0e6ba8', C: '#7c3aed', I: '#d97706' }
+const RACI_COLORS = { R: '#7c3aed', A: '#4815E1', C: '#B841E3', I: '#DF346D' }
 const STATUS_OPTIONS = ['Not Started', 'In Progress', 'Complete', 'Blocked']
-const STATUS_COLORS = { 'Not Started': '#94a3b8', 'In Progress': '#0e6ba8', 'Complete': '#0a7c6e', 'Blocked': '#dc2626' }
+const STATUS_COLORS = { 'Not Started': '#94a3b8', 'In Progress': '#4815E1', 'Complete': '#0a7c6e', 'Blocked': '#dc2626' }
 const PRIORITY = ['High', 'Medium', 'Low']
 const PRIORITY_COLORS = { High: '#dc2626', Medium: '#d97706', Low: '#0a7c6e' }
-
-const uid = () => Math.floor(Math.random() * 1e9)
 
 function RACIBadge({ value, onClick, disabled }) {
   return (
@@ -39,6 +38,7 @@ function PriDot({ priority }) {
 
 export default function DashboardPage() {
   const { profile: currentUser, signOut } = useAuth()
+  const { theme } = useTheme()
   const [view, setView] = useState('strategy')
   const [showAdmin, setShowAdmin] = useState(false)
   const [showThemeBuilder, setShowThemeBuilder] = useState(false)
@@ -55,6 +55,12 @@ export default function DashboardPage() {
   const canEdit = currentUser?.role === 'admin' || currentUser?.role === 'editor'
   const isAdmin = currentUser?.role === 'admin'
 
+  // Derived theme values used throughout
+  const grad = `linear-gradient(135deg,${theme.primaryStart},${theme.primaryEnd})`
+  const grad3 = `linear-gradient(135deg,${theme.primaryStart},${theme.primaryMid || theme.primaryEnd},${theme.primaryEnd})`
+  const ff = `'${theme.bodyFont}',sans-serif`
+  const radius = parseInt(theme.borderRadius || 12)
+
   useEffect(() => { fetchAll() }, [])
 
   async function fetchAll() {
@@ -64,7 +70,6 @@ export default function DashboardPage() {
       supabase.from('goals').select(`*, tactics(*, tasks(*))`).order('created_at'),
     ])
     setUsers(profilesData || [])
-    // Sort nested
     const sorted = (goalsData || []).map(g => ({
       ...g,
       tactics: (g.tactics || []).sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).map(t => ({
@@ -90,8 +95,7 @@ export default function DashboardPage() {
     const task = allTasks.find(t => t.id === taskId)
     if (!task) return
     const raci = task.raci || {}
-    const cur = raci[member] || ''
-    const next = RACI_OPTIONS[(RACI_OPTIONS.indexOf(cur) + 1) % RACI_OPTIONS.length]
+    const next = RACI_OPTIONS[(RACI_OPTIONS.indexOf(raci[member] || '') + 1) % RACI_OPTIONS.length]
     const newRaci = { ...raci, [member]: next }
     await supabase.from('tasks').update({ raci: newRaci }).eq('id', taskId)
     setGoals(gs => gs.map(g => ({ ...g, tactics: g.tactics.map(t => ({ ...t, tasks: t.tasks.map(tk => tk.id === taskId ? { ...tk, raci: newRaci } : tk) })) })))
@@ -118,10 +122,7 @@ export default function DashboardPage() {
     if (!newTactic.title.trim()) return
     const goalId = newTactic.goalId || goals[0]?.id
     const { data } = await supabase.from('tactics').insert({ title: newTactic.title, goal_id: goalId }).select().single()
-    if (data) {
-      setGoals(gs => gs.map(g => g.id !== goalId ? g : { ...g, tactics: [...g.tactics, { ...data, tasks: [] }] }))
-      await logActivity('create', `Added tactic "${data.title}"`)
-    }
+    if (data) { setGoals(gs => gs.map(g => g.id !== goalId ? g : { ...g, tactics: [...g.tactics, { ...data, tasks: [] }] })); await logActivity('create', `Added tactic "${data.title}"`) }
     setNewTactic({ title: '', goalId: null }); setModal(null)
   }
 
@@ -129,10 +130,7 @@ export default function DashboardPage() {
     if (!newTask.title.trim()) return
     const raci = memberNames.reduce((a, m) => ({ ...a, [m]: '' }), {})
     const { data } = await supabase.from('tasks').insert({ title: newTask.title, priority: newTask.priority, due_date: newTask.due || null, tactic_id: newTask.tacticId, status: 'Not Started', raci }).select().single()
-    if (data) {
-      setGoals(gs => gs.map(g => ({ ...g, tactics: g.tactics.map(t => t.id !== newTask.tacticId ? t : { ...t, tasks: [...t.tasks, data] }) })))
-      await logActivity('create', `Added task "${data.title}"`)
-    }
+    if (data) { setGoals(gs => gs.map(g => ({ ...g, tactics: g.tactics.map(t => t.id !== newTask.tacticId ? t : { ...t, tasks: [...t.tasks, data] }) }))); await logActivity('create', `Added task "${data.title}"`) }
     setNewTask({ title: '', priority: 'High', due: '', tacticId: null }); setModal(null)
   }
 
@@ -141,13 +139,11 @@ export default function DashboardPage() {
     setGoals(gs => gs.filter(g => g.id !== id))
     await logActivity('delete', `Deleted goal "${title}"`)
   }
-
   async function deleteTactic(id, title) {
     await supabase.from('tactics').delete().eq('id', id)
     setGoals(gs => gs.map(g => ({ ...g, tactics: g.tactics.filter(t => t.id !== id) })))
     await logActivity('delete', `Deleted tactic "${title}"`)
   }
-
   async function deleteTask(id, title) {
     await supabase.from('tasks').delete().eq('id', id)
     setGoals(gs => gs.map(g => ({ ...g, tactics: g.tactics.map(t => ({ ...t, tasks: t.tasks.filter(tk => tk.id !== id) })) })))
@@ -161,42 +157,51 @@ export default function DashboardPage() {
   ]
 
   if (loading) return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: theme.pageBg, fontFamily: ff }}>
       <div style={{ textAlign: 'center' }}>
-        <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 24, background: 'linear-gradient(135deg,#0a7c6e,#0e6ba8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: 12 }}>Alifor</div>
-        <div style={{ color: '#94a3b8', fontSize: 14 }}>Loading workspace…</div>
+        <img src={theme.logoUrl || '/alifor-logo.svg'} alt={theme.appName} style={{ height: 28, marginBottom: 16 }} />
+        <div style={{ color: theme.textMuted, fontSize: 13 }}>Loading workspace…</div>
       </div>
     </div>
   )
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', fontFamily: "'Plus Jakarta Sans','DM Sans',sans-serif" }}>
-      {/* Sidebar */}
-      <div style={{ position: 'fixed', left: 0, top: 0, bottom: 0, width: 240, background: '#0f0a1e', display: 'flex', flexDirection: 'column', zIndex: 100 }}>
-        <div style={{ padding: '22px 24px 18px', borderBottom: '1px solid #1e1033' }}>
-          <img src="/alifor-logo.svg" alt="Alifor" style={{ height: 22, marginBottom: 6, display: 'block' }} />
-          <div style={{ fontSize: 10, color: '#6d5fa0', marginTop: 2, letterSpacing: 1.4, textTransform: 'uppercase', fontWeight: 500 }}>Clinical Operating System</div>
+    <div style={{ minHeight: '100vh', background: theme.pageBg, fontFamily: ff, color: theme.textPrimary }}>
+
+      {/* ── Sidebar ── */}
+      <div style={{ position: 'fixed', left: 0, top: 0, bottom: 0, width: parseInt(theme.sidebarWidth), background: theme.sidebarBg, display: 'flex', flexDirection: 'column', zIndex: 100 }}>
+
+        {/* Logo */}
+        <div style={{ padding: '22px 24px 18px', borderBottom: `1px solid ${theme.sidebarBg === '#0f0a1e' ? '#1e1033' : '#1e293b'}` }}>
+          {theme.logoUrl
+            ? <img src={theme.logoUrl} alt={theme.appName} style={{ height: 22, marginBottom: 6, display: 'block' }} />
+            : <div style={{ fontFamily: ff, fontSize: 20, fontWeight: 800, background: grad3, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: 4 }}>{theme.appName}</div>
+          }
+          <div style={{ fontSize: 10, color: '#6d5fa0', marginTop: 2, letterSpacing: 1.4, textTransform: 'uppercase', fontWeight: 500 }}>{theme.appTagline}</div>
         </div>
 
+        {/* Nav */}
         <nav style={{ padding: '14px 12px', flex: 1, overflowY: 'auto' }}>
-          <div style={{ fontSize: 10, color: '#334155', letterSpacing: 1.4, textTransform: 'uppercase', fontWeight: 600, marginBottom: 6, paddingLeft: 10 }}>Workspace</div>
+          <div style={{ fontSize: 10, color: '#6d5fa0', letterSpacing: 1.4, textTransform: 'uppercase', fontWeight: 600, marginBottom: 6, paddingLeft: 10 }}>Workspace</div>
           {navItems.map(n => (
-            <button key={n.id} onClick={() => setView(n.id)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 8, border: 'none', background: view === n.id ? '#4815E120' : 'transparent', color: view === n.id ? '#B841E3' : '#64748b', fontSize: 13, fontWeight: view === n.id ? 600 : 500, cursor: 'pointer', marginBottom: 2, textAlign: 'left' }}>
+            <button key={n.id} onClick={() => setView(n.id)}
+              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: radius, border: 'none', background: view === n.id ? theme.primaryStart + '25' : 'transparent', color: view === n.id ? theme.sidebarActiveText || theme.primaryMid : '#64748b', fontSize: 13, fontWeight: view === n.id ? 600 : 500, cursor: 'pointer', marginBottom: 2, textAlign: 'left', fontFamily: ff }}>
               <span>{n.icon}</span> {n.label}
-              {view === n.id && <div style={{ marginLeft: 'auto', width: 5, height: 5, borderRadius: '50%', background: '#B841E3' }} />}
+              {view === n.id && <div style={{ marginLeft: 'auto', width: 5, height: 5, borderRadius: '50%', background: theme.sidebarActiveText || theme.primaryMid }} />}
             </button>
           ))}
 
           {isAdmin && <>
-            <div style={{ fontSize: 10, color: '#334155', letterSpacing: 1.4, textTransform: 'uppercase', fontWeight: 600, marginBottom: 6, paddingLeft: 10, marginTop: 20 }}>Admin</div>
-            <button onClick={() => setShowAdmin(true)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 8, border: 'none', background: 'transparent', color: '#64748b', fontSize: 13, fontWeight: 500, cursor: 'pointer', textAlign: 'left' }}>
+            <div style={{ fontSize: 10, color: '#6d5fa0', letterSpacing: 1.4, textTransform: 'uppercase', fontWeight: 600, marginBottom: 6, paddingLeft: 10, marginTop: 20 }}>Admin</div>
+            <button onClick={() => setShowAdmin(true)}
+              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: radius, border: 'none', background: 'transparent', color: '#64748b', fontSize: 13, fontWeight: 500, cursor: 'pointer', textAlign: 'left', fontFamily: ff }}>
               🛡 Admin Console
             </button>
           </>}
 
-          <div style={{ fontSize: 10, color: '#334155', letterSpacing: 1.4, textTransform: 'uppercase', fontWeight: 600, marginBottom: 6, paddingLeft: 10, marginTop: 20 }}>Team ({users.length})</div>
+          <div style={{ fontSize: 10, color: '#6d5fa0', letterSpacing: 1.4, textTransform: 'uppercase', fontWeight: 600, marginBottom: 6, paddingLeft: 10, marginTop: 20 }}>Team ({users.length})</div>
           {users.map(u => (
-            <div key={u.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 8, background: u.id === currentUser?.id ? '#ffffff08' : 'transparent' }}>
+            <div key={u.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: radius, background: u.id === currentUser?.id ? '#ffffff08' : 'transparent' }}>
               <Avatar name={u.name || u.email} size={22} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 11, color: u.id === currentUser?.id ? '#e2e8f0' : '#94a3b8', fontWeight: u.id === currentUser?.id ? 600 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.name || u.email}</div>
@@ -206,25 +211,34 @@ export default function DashboardPage() {
           ))}
         </nav>
 
-        <div style={{ padding: '14px 16px', borderTop: '1px solid #1e1033' }}>
+        {/* Bottom */}
+        <div style={{ padding: '14px 16px', borderTop: `1px solid ${theme.sidebarBg === '#0f0a1e' ? '#1e1033' : '#1e293b'}` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
             <Avatar name={currentUser?.name || currentUser?.email || '?'} size={30} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: '#e2e8f0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{currentUser?.name}</div>
-              <div style={{ fontSize: 10, color: '#475569' }}>{currentUser?.title}</div>
+              <div style={{ fontSize: 10, color: '#6d5fa0' }}>{currentUser?.title}</div>
             </div>
           </div>
-          <button onClick={() => setShowThemeBuilder(true)} style={{ width: '100%', padding: '7px 12px', borderRadius: 8, background: '#1e293b', border: 'none', color: '#2dd4bf', fontSize: 12, cursor: 'pointer', textAlign: 'left', marginBottom: 6 }}>🎨 Visual Builder</button>
-          <button onClick={signOut} style={{ width: '100%', padding: '7px 12px', borderRadius: 8, background: '#1e293b', border: 'none', color: '#64748b', fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>← Sign out</button>
+          <button onClick={() => setShowThemeBuilder(true)}
+            style={{ width: '100%', padding: '7px 12px', borderRadius: radius, background: theme.primaryStart + '20', border: `1px solid ${theme.primaryStart}40`, color: theme.sidebarActiveText || theme.primaryMid, fontSize: 12, cursor: 'pointer', textAlign: 'left', marginBottom: 6, fontFamily: ff, fontWeight: 600 }}>
+            🎨 Visual Builder
+          </button>
+          <button onClick={signOut}
+            style={{ width: '100%', padding: '7px 12px', borderRadius: radius, background: '#1e293b', border: 'none', color: '#64748b', fontSize: 12, cursor: 'pointer', textAlign: 'left', fontFamily: ff }}>
+            ← Sign out
+          </button>
         </div>
       </div>
 
-      {/* Main */}
-      <div style={{ marginLeft: 240, minHeight: '100vh' }}>
-        <div style={{ background: '#fff', borderBottom: '1px solid #e2e8f0', padding: '0 32px', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 50 }}>
+      {/* ── Main Content ── */}
+      <div style={{ marginLeft: parseInt(theme.sidebarWidth), minHeight: '100vh' }}>
+
+        {/* Topbar */}
+        <div style={{ background: theme.cardBg, borderBottom: `1px solid ${theme.cardBorder}`, padding: '0 32px', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 50 }}>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 700 }}>{navItems.find(n => n.id === view)?.label}</div>
-            <div style={{ fontSize: 11, color: '#94a3b8' }}>{allTasks.length} tasks · {pct}% complete · <RoleBadge role={currentUser?.role} /></div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: theme.textPrimary }}>{navItems.find(n => n.id === view)?.label}</div>
+            <div style={{ fontSize: 11, color: theme.textMuted }}>{allTasks.length} tasks · {pct}% complete · <RoleBadge role={currentUser?.role} /></div>
           </div>
           {canEdit && (
             <div style={{ display: 'flex', gap: 10 }}>
@@ -235,49 +249,53 @@ export default function DashboardPage() {
         </div>
 
         <div style={{ padding: 32 }}>
-          {/* DASHBOARD */}
+
+          {/* ── DASHBOARD ── */}
           {view === 'dashboard' && (
             <div>
-              <h2 style={{ margin: '0 0 4px', fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 26 }}>Command Overview</h2>
-              <p style={{ margin: '0 0 28px', color: '#64748b', fontSize: 14 }}>Strategic performance across all clinical initiatives</p>
+              <h2 style={{ margin: '0 0 4px', fontFamily: ff, fontSize: 26, fontWeight: 800, color: theme.textPrimary }}>Command Overview</h2>
+              <p style={{ margin: '0 0 28px', color: theme.textMuted, fontSize: 14 }}>Strategic performance across all clinical initiatives</p>
+
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: 16, marginBottom: 28 }}>
-                {[['📋','Total Tasks',allTasks.length,'#0e6ba8'],['✓','Complete',statCounts['Complete'],'#0a7c6e'],['⟳','In Progress',statCounts['In Progress'],'#0e6ba8'],['!','Blocked',statCounts['Blocked'],'#dc2626']].map(([icon,l,v,c]) => (
-                  <div key={l} style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 14, padding: '18px 22px', display: 'flex', alignItems: 'center', gap: 14 }}>
-                    <div style={{ width: 40, height: 40, borderRadius: 10, background: c+'18', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>{icon}</div>
+                {[['📋','Total Tasks',allTasks.length,theme.primaryStart],['✓','Complete',statCounts['Complete'],'#0a7c6e'],['⟳','In Progress',statCounts['In Progress'],theme.primaryEnd],['!','Blocked',statCounts['Blocked'],'#dc2626']].map(([icon,l,v,c]) => (
+                  <div key={l} style={{ background: theme.cardBg, border: `1.5px solid ${theme.cardBorder}`, borderRadius: radius, padding: '18px 22px', display: 'flex', alignItems: 'center', gap: 14 }}>
+                    <div style={{ width: 40, height: 40, borderRadius: radius * 0.8, background: c+'18', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>{icon}</div>
                     <div>
-                      <div style={{ fontSize: 24, fontWeight: 800, color: c, fontFamily: "'Plus Jakarta Sans',sans-serif", lineHeight: 1 }}>{v}</div>
-                      <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{l}</div>
+                      <div style={{ fontSize: 24, fontWeight: 800, color: c, lineHeight: 1 }}>{v}</div>
+                      <div style={{ fontSize: 11, color: theme.textMuted, marginTop: 2 }}>{l}</div>
                     </div>
                   </div>
                 ))}
               </div>
-              <div style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 14, padding: '22px 26px', marginBottom: 20 }}>
+
+              <div style={{ background: theme.cardBg, border: `1.5px solid ${theme.cardBorder}`, borderRadius: radius, padding: '22px 26px', marginBottom: 20 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                  <span style={{ fontWeight: 600, fontSize: 14 }}>Overall Completion</span>
-                  <span style={{ fontWeight: 800, color: '#0a7c6e', fontSize: 18, fontFamily: "'Plus Jakarta Sans',sans-serif" }}>{pct}%</span>
+                  <span style={{ fontWeight: 600, fontSize: 14, color: theme.textPrimary }}>Overall Completion</span>
+                  <span style={{ fontWeight: 800, color: theme.primaryStart, fontSize: 18 }}>{pct}%</span>
                 </div>
-                <div style={{ background: '#f1f5f9', borderRadius: 99, height: 8, overflow: 'hidden' }}>
-                  <div style={{ background: 'linear-gradient(90deg,#4815E1,#B841E3,#DF346D)', height: '100%', width: pct+'%', borderRadius: 99, transition: 'width 0.6s' }} />
+                <div style={{ background: theme.pageBg, borderRadius: 99, height: 8, overflow: 'hidden' }}>
+                  <div style={{ background: grad3, height: '100%', width: pct+'%', borderRadius: 99, transition: 'width 0.6s' }} />
                 </div>
               </div>
+
               {goals.map(goal => {
                 const gTasks = goal.tactics.flatMap(t => t.tasks)
                 const done = gTasks.filter(t => t.status === 'Complete').length
                 const gp = gTasks.length ? Math.round(done / gTasks.length * 100) : 0
                 return (
-                  <div key={goal.id} style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 14, padding: '18px 22px', marginBottom: 14 }}>
+                  <div key={goal.id} style={{ background: theme.cardBg, border: `1.5px solid ${theme.cardBorder}`, borderRadius: radius, padding: '18px 22px', marginBottom: 14 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
                       <div>
-                        <div style={{ fontWeight: 700, fontSize: 14 }}>{goal.title}</div>
-                        <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{goal.description}</div>
+                        <div style={{ fontWeight: 700, fontSize: 14, color: theme.textPrimary }}>{goal.title}</div>
+                        <div style={{ fontSize: 12, color: theme.textMuted, marginTop: 2 }}>{goal.description}</div>
                       </div>
-                      <div style={{ fontSize: 18, fontWeight: 800, color: '#0a7c6e', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>{gp}%</div>
+                      <div style={{ fontSize: 18, fontWeight: 800, color: theme.primaryStart }}>{gp}%</div>
                     </div>
-                    <div style={{ background: '#f1f5f9', borderRadius: 99, height: 5, marginBottom: 12 }}>
-                      <div style={{ background: 'linear-gradient(90deg,#4815E1,#DF346D)', height: '100%', width: gp+'%', borderRadius: 99 }} />
+                    <div style={{ background: theme.pageBg, borderRadius: 99, height: 5, marginBottom: 12 }}>
+                      <div style={{ background: grad, height: '100%', width: gp+'%', borderRadius: 99 }} />
                     </div>
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                      {goal.tactics.map(t => <span key={t.id} style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', padding: '3px 10px', borderRadius: 99, fontSize: 11, color: '#64748b' }}>{t.title} · {t.tasks.length}</span>)}
+                      {goal.tactics.map(t => <span key={t.id} style={{ background: theme.pageBg, border: `1px solid ${theme.cardBorder}`, padding: '3px 10px', borderRadius: 99, fontSize: 11, color: theme.textMuted }}>{t.title} · {t.tasks.length}</span>)}
                     </div>
                   </div>
                 )
@@ -285,45 +303,47 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* STRATEGY */}
+          {/* ── STRATEGY ── */}
           {view === 'strategy' && (
             <div>
-              <h2 style={{ margin: '0 0 4px', fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 26 }}>Strategic Goals</h2>
-              <p style={{ margin: '0 0 28px', color: '#64748b', fontSize: 14 }}>Goals → Tactics → Tasks{!canEdit && ' · Read-only access'}</p>
+              <h2 style={{ margin: '0 0 4px', fontFamily: ff, fontSize: 26, fontWeight: 800, color: theme.textPrimary }}>Strategic Goals</h2>
+              <p style={{ margin: '0 0 28px', color: theme.textMuted, fontSize: 14 }}>Goals → Tactics → Tasks{!canEdit && ' · Read-only access'}</p>
+
               {goals.map(goal => (
-                <div key={goal.id} style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 16, marginBottom: 20, overflow: 'hidden' }}>
+                <div key={goal.id} style={{ background: theme.cardBg, border: `1.5px solid ${theme.cardBorder}`, borderRadius: radius, marginBottom: 20, overflow: 'hidden' }}>
                   <div onClick={() => setExpandedGoals(e => ({ ...e, [goal.id]: !e[goal.id] }))}
-                    style={{ padding: '16px 22px', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', background: '#fafcff', borderBottom: expandedGoals[goal.id] ? '1.5px solid #f1f5f9' : 'none' }}>
-                    <div style={{ width: 30, height: 30, borderRadius: 8, background: 'linear-gradient(135deg,#4815E1,#DF346D)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12 }}>
+                    style={{ padding: '16px 22px', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', background: theme.pageBg, borderBottom: expandedGoals[goal.id] ? `1.5px solid ${theme.cardBorder}` : 'none' }}>
+                    <div style={{ width: 30, height: 30, borderRadius: radius * 0.7, background: grad3, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12, flexShrink: 0 }}>
                       {expandedGoals[goal.id] ? '▾' : '▸'}
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 15, fontWeight: 700 }}>{goal.title}</div>
-                      <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 1 }}>{goal.description}</div>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: theme.textPrimary }}>{goal.title}</div>
+                      <div style={{ fontSize: 12, color: theme.textMuted, marginTop: 1 }}>{goal.description}</div>
                     </div>
                     {canEdit && <div style={{ display: 'flex', gap: 8 }} onClick={e => e.stopPropagation()}>
                       <Btn small variant="secondary" onClick={() => { setNewTactic({ title: '', goalId: goal.id }); setModal('addTactic') }}>+ Tactic</Btn>
                       <Btn small variant="danger" onClick={() => deleteGoal(goal.id, goal.title)}>✕</Btn>
                     </div>}
                   </div>
+
                   {expandedGoals[goal.id] && goal.tactics.map(tactic => (
                     <div key={tactic.id}>
                       <div onClick={() => setExpandedTactics(e => ({ ...e, [tactic.id]: !e[tactic.id] }))}
-                        style={{ padding: '11px 22px 11px 52px', display: 'flex', alignItems: 'center', gap: 10, background: '#f8fafc', cursor: 'pointer', borderBottom: '1px solid #f1f5f9' }}>
-                        <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#0e6ba8', flexShrink: 0 }} />
-                        <div style={{ flex: 1, fontWeight: 600, fontSize: 13, color: '#334155' }}>{tactic.title}</div>
+                        style={{ padding: '11px 22px 11px 52px', display: 'flex', alignItems: 'center', gap: 10, background: theme.cardBg, cursor: 'pointer', borderBottom: `1px solid ${theme.cardBorder}` }}>
+                        <div style={{ width: 6, height: 6, borderRadius: '50%', background: theme.primaryStart, flexShrink: 0 }} />
+                        <div style={{ flex: 1, fontWeight: 600, fontSize: 13, color: theme.textPrimary }}>{tactic.title}</div>
                         {canEdit && <div style={{ display: 'flex', gap: 8 }} onClick={e => e.stopPropagation()}>
                           <Btn small variant="ghost" onClick={() => { setNewTask({ title: '', priority: 'High', due: '', tacticId: tactic.id }); setModal('addTask') }}>+ Task</Btn>
                           <Btn small variant="danger" onClick={() => deleteTactic(tactic.id, tactic.title)}>✕</Btn>
                         </div>}
                       </div>
                       {expandedTactics[tactic.id] && tactic.tasks.map((task, ti) => (
-                        <div key={task.id} style={{ padding: '10px 22px 10px 76px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid #f8fafc', background: ti % 2 ? '#fff' : '#fafcff' }}>
+                        <div key={task.id} style={{ padding: '10px 22px 10px 76px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: `1px solid ${theme.cardBorder}`, background: ti % 2 ? theme.cardBg : theme.pageBg }}>
                           <PriDot priority={task.priority} />
-                          <div style={{ flex: 1, fontSize: 13 }}>{task.title}</div>
+                          <div style={{ flex: 1, fontSize: 13, color: theme.textPrimary }}>{task.title}</div>
                           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                             <StatusPill status={task.status} onClick={() => cycleStatus(task.id)} disabled={!canEdit} />
-                            {task.due_date && <span style={{ fontSize: 11, color: '#94a3b8' }}>{task.due_date}</span>}
+                            {task.due_date && <span style={{ fontSize: 11, color: theme.textMuted }}>{task.due_date}</span>}
                             <span style={{ fontSize: 11, fontWeight: 600, color: PRIORITY_COLORS[task.priority] }}>{task.priority}</span>
                           </div>
                           {canEdit && <Btn small variant="danger" style={{ padding: '3px 8px' }} onClick={() => deleteTask(task.id, task.title)}>✕</Btn>}
@@ -333,34 +353,36 @@ export default function DashboardPage() {
                   ))}
                 </div>
               ))}
-              {goals.length === 0 && <div style={{ textAlign: 'center', padding: 60, color: '#cbd5e1' }}>No goals yet — click <strong style={{ color: '#0a7c6e' }}>+ Strategic Goal</strong> to begin</div>}
+              {goals.length === 0 && <div style={{ textAlign: 'center', padding: 60, color: theme.textMuted }}>No goals yet — click <strong style={{ color: theme.primaryStart }}>+ Strategic Goal</strong> to begin</div>}
             </div>
           )}
 
-          {/* RACI */}
+          {/* ── RACI ── */}
           {view === 'raci' && (
             <div>
-              <h2 style={{ margin: '0 0 4px', fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 26 }}>RACI Matrix</h2>
-              <p style={{ margin: '0 0 16px', color: '#64748b', fontSize: 14 }}>{canEdit ? 'Click any cell to cycle: R → A → C → I' : 'Read-only view'}</p>
+              <h2 style={{ margin: '0 0 4px', fontFamily: ff, fontSize: 26, fontWeight: 800, color: theme.textPrimary }}>RACI Matrix</h2>
+              <p style={{ margin: '0 0 16px', color: theme.textMuted, fontSize: 14 }}>{canEdit ? 'Click any cell to cycle: R → A → C → I' : 'Read-only view'}</p>
+
               <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexWrap: 'wrap' }}>
                 {Object.entries(RACI_LABELS).map(([k, v]) => (
-                  <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 7, background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 8, padding: '5px 12px' }}>
+                  <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 7, background: theme.cardBg, border: `1.5px solid ${theme.cardBorder}`, borderRadius: radius * 0.7, padding: '5px 12px' }}>
                     <div style={{ width: 26, height: 26, borderRadius: 6, background: RACI_COLORS[k]+'20', color: RACI_COLORS[k], border: `1.5px solid ${RACI_COLORS[k]}44`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 12 }}>{k}</div>
-                    <span style={{ fontSize: 12, color: '#475569', fontWeight: 500 }}>{v}</span>
+                    <span style={{ fontSize: 12, color: theme.textMuted, fontWeight: 500 }}>{v}</span>
                   </div>
                 ))}
               </div>
-              <div style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 16, overflow: 'hidden' }}>
+
+              <div style={{ background: theme.cardBg, border: `1.5px solid ${theme.cardBorder}`, borderRadius: radius, overflow: 'hidden' }}>
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
-                      <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-                        <th style={{ padding: '13px 20px', textAlign: 'left', fontSize: 11, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.8, minWidth: 240 }}>Task</th>
-                        <th style={{ padding: '13px 12px', textAlign: 'center', fontSize: 11, fontWeight: 600, color: '#64748b', minWidth: 110 }}>Status</th>
+                      <tr style={{ background: theme.pageBg, borderBottom: `2px solid ${theme.cardBorder}` }}>
+                        <th style={{ padding: '13px 20px', textAlign: 'left', fontSize: 11, fontWeight: 600, color: theme.textMuted, textTransform: 'uppercase', letterSpacing: 0.8, minWidth: 240 }}>Task</th>
+                        <th style={{ padding: '13px 12px', textAlign: 'center', fontSize: 11, fontWeight: 600, color: theme.textMuted, minWidth: 110 }}>Status</th>
                         {memberNames.map(m => (
-                          <th key={m} style={{ padding: '13px 10px', textAlign: 'center', fontSize: 10, fontWeight: 600, color: '#64748b', minWidth: 90 }}>
+                          <th key={m} style={{ padding: '13px 10px', textAlign: 'center', fontSize: 10, fontWeight: 600, color: theme.textMuted, minWidth: 90 }}>
                             <Avatar name={m} size={24} />
-                            <div style={{ marginTop: 4, fontSize: 10, color: '#94a3b8' }}>{m.split(' ')[0]}</div>
+                            <div style={{ marginTop: 4, fontSize: 10, color: theme.textMuted }}>{m.split(' ')[0]}</div>
                           </th>
                         ))}
                       </tr>
@@ -368,16 +390,16 @@ export default function DashboardPage() {
                     <tbody>
                       {goals.map(goal => (
                         <>
-                          <tr key={'g'+goal.id} style={{ background: 'linear-gradient(90deg,#f0fdf9,#f0f7ff)' }}>
-                            <td colSpan={memberNames.length + 2} style={{ padding: '8px 20px', fontSize: 11, fontWeight: 700, color: '#0a7c6e', letterSpacing: 1, textTransform: 'uppercase' }}>◈ {goal.title}</td>
+                          <tr key={'g'+goal.id} style={{ background: theme.primaryStart + '10' }}>
+                            <td colSpan={memberNames.length + 2} style={{ padding: '8px 20px', fontSize: 11, fontWeight: 700, color: theme.primaryStart, letterSpacing: 1, textTransform: 'uppercase' }}>◈ {goal.title}</td>
                           </tr>
                           {goal.tactics.flatMap(tactic => [
-                            <tr key={'t'+tactic.id} style={{ background: '#f8fafc' }}>
-                              <td colSpan={memberNames.length + 2} style={{ padding: '7px 20px 7px 34px', fontSize: 12, fontWeight: 600, color: '#0e6ba8' }}>◎ {tactic.title}</td>
+                            <tr key={'t'+tactic.id} style={{ background: theme.pageBg }}>
+                              <td colSpan={memberNames.length + 2} style={{ padding: '7px 20px 7px 34px', fontSize: 12, fontWeight: 600, color: theme.primaryEnd }}>◎ {tactic.title}</td>
                             </tr>,
                             ...tactic.tasks.map((task, ti) => (
-                              <tr key={task.id} style={{ background: ti % 2 ? '#fff' : '#fafcff', borderBottom: '1px solid #f1f5f9' }}>
-                                <td style={{ padding: '11px 20px 11px 52px', fontSize: 13 }}><PriDot priority={task.priority} />{task.title}</td>
+                              <tr key={task.id} style={{ background: ti % 2 ? theme.cardBg : theme.pageBg, borderBottom: `1px solid ${theme.cardBorder}` }}>
+                                <td style={{ padding: '11px 20px 11px 52px', fontSize: 13, color: theme.textPrimary }}><PriDot priority={task.priority} />{task.title}</td>
                                 <td style={{ padding: '11px 10px', textAlign: 'center' }}><StatusPill status={task.status} onClick={() => cycleStatus(task.id)} disabled={!canEdit} /></td>
                                 {memberNames.map(m => (
                                   <td key={m} style={{ padding: '11px 10px', textAlign: 'center' }}>
