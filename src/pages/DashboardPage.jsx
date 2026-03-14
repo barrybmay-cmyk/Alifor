@@ -163,27 +163,27 @@ export default function DashboardPage() {
   if (loading) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc' }}>
       <div style={{ textAlign: 'center' }}>
-        <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 24, background: 'linear-gradient(135deg,#0a7c6e,#0e6ba8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: 12 }}>Alifor</div>
+        <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 24, background: 'linear-gradient(135deg,#0a7c6e,#0e6ba8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: 12 }}>Alifor</div>
         <div style={{ color: '#94a3b8', fontSize: 14 }}>Loading workspace…</div>
       </div>
     </div>
   )
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', fontFamily: "'Outfit','Segoe UI',sans-serif" }}>
+    <div style={{ minHeight: '100vh', background: '#f8fafc', fontFamily: "'Plus Jakarta Sans','DM Sans',sans-serif" }}>
       {/* Sidebar */}
-      <div style={{ position: 'fixed', left: 0, top: 0, bottom: 0, width: 240, background: '#0f172a', display: 'flex', flexDirection: 'column', zIndex: 100 }}>
-        <div style={{ padding: '26px 24px 18px', borderBottom: '1px solid #1e293b' }}>
-          <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, fontWeight: 700, background: 'linear-gradient(135deg,#2dd4bf,#38bdf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Alifor</div>
-          <div style={{ fontSize: 10, color: '#334155', marginTop: 2, letterSpacing: 1.4, textTransform: 'uppercase', fontWeight: 500 }}>Clinical Operating System</div>
+      <div style={{ position: 'fixed', left: 0, top: 0, bottom: 0, width: 240, background: '#0f0a1e', display: 'flex', flexDirection: 'column', zIndex: 100 }}>
+        <div style={{ padding: '22px 24px 18px', borderBottom: '1px solid #1e1033' }}>
+          <img src="/alifor-logo.svg" alt="Alifor" style={{ height: 22, marginBottom: 6, display: 'block' }} />
+          <div style={{ fontSize: 10, color: '#6d5fa0', marginTop: 2, letterSpacing: 1.4, textTransform: 'uppercase', fontWeight: 500 }}>Clinical Operating System</div>
         </div>
 
         <nav style={{ padding: '14px 12px', flex: 1, overflowY: 'auto' }}>
           <div style={{ fontSize: 10, color: '#334155', letterSpacing: 1.4, textTransform: 'uppercase', fontWeight: 600, marginBottom: 6, paddingLeft: 10 }}>Workspace</div>
           {navItems.map(n => (
-            <button key={n.id} onClick={() => setView(n.id)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 8, border: 'none', background: view === n.id ? '#ffffff12' : 'transparent', color: view === n.id ? '#2dd4bf' : '#64748b', fontSize: 13, fontWeight: view === n.id ? 600 : 500, cursor: 'pointer', marginBottom: 2, textAlign: 'left' }}>
+            <button key={n.id} onClick={() => setView(n.id)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 8, border: 'none', background: view === n.id ? '#4815E120' : 'transparent', color: view === n.id ? '#B841E3' : '#64748b', fontSize: 13, fontWeight: view === n.id ? 600 : 500, cursor: 'pointer', marginBottom: 2, textAlign: 'left' }}>
               <span>{n.icon}</span> {n.label}
-              {view === n.id && <div style={{ marginLeft: 'auto', width: 5, height: 5, borderRadius: '50%', background: '#2dd4bf' }} />}
+              {view === n.id && <div style={{ marginLeft: 'auto', width: 5, height: 5, borderRadius: '50%', background: '#B841E3' }} />}
             </button>
           ))}
 
@@ -206,7 +206,7 @@ export default function DashboardPage() {
           ))}
         </nav>
 
-        <div style={{ padding: '14px 16px', borderTop: '1px solid #1e293b' }}>
+        <div style={{ padding: '14px 16px', borderTop: '1px solid #1e1033' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
             <Avatar name={currentUser?.name || currentUser?.email || '?'} size={30} />
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -238,14 +238,14 @@ export default function DashboardPage() {
           {/* DASHBOARD */}
           {view === 'dashboard' && (
             <div>
-              <h2 style={{ margin: '0 0 4px', fontFamily: "'Playfair Display',serif", fontSize: 26 }}>Command Overview</h2>
+              <h2 style={{ margin: '0 0 4px', fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 26 }}>Command Overview</h2>
               <p style={{ margin: '0 0 28px', color: '#64748b', fontSize: 14 }}>Strategic performance across all clinical initiatives</p>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: 16, marginBottom: 28 }}>
                 {[['📋','Total Tasks',allTasks.length,'#0e6ba8'],['✓','Complete',statCounts['Complete'],'#0a7c6e'],['⟳','In Progress',statCounts['In Progress'],'#0e6ba8'],['!','Blocked',statCounts['Blocked'],'#dc2626']].map(([icon,l,v,c]) => (
                   <div key={l} style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 14, padding: '18px 22px', display: 'flex', alignItems: 'center', gap: 14 }}>
                     <div style={{ width: 40, height: 40, borderRadius: 10, background: c+'18', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>{icon}</div>
                     <div>
-                      <div style={{ fontSize: 24, fontWeight: 800, color: c, fontFamily: "'Playfair Display',serif", lineHeight: 1 }}>{v}</div>
+                      <div style={{ fontSize: 24, fontWeight: 800, color: c, fontFamily: "'Plus Jakarta Sans',sans-serif", lineHeight: 1 }}>{v}</div>
                       <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{l}</div>
                     </div>
                   </div>
@@ -254,10 +254,10 @@ export default function DashboardPage() {
               <div style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 14, padding: '22px 26px', marginBottom: 20 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                   <span style={{ fontWeight: 600, fontSize: 14 }}>Overall Completion</span>
-                  <span style={{ fontWeight: 800, color: '#0a7c6e', fontSize: 18, fontFamily: "'Playfair Display',serif" }}>{pct}%</span>
+                  <span style={{ fontWeight: 800, color: '#0a7c6e', fontSize: 18, fontFamily: "'Plus Jakarta Sans',sans-serif" }}>{pct}%</span>
                 </div>
                 <div style={{ background: '#f1f5f9', borderRadius: 99, height: 8, overflow: 'hidden' }}>
-                  <div style={{ background: 'linear-gradient(90deg,#0a7c6e,#0e6ba8,#2dd4bf)', height: '100%', width: pct+'%', borderRadius: 99, transition: 'width 0.6s' }} />
+                  <div style={{ background: 'linear-gradient(90deg,#4815E1,#B841E3,#DF346D)', height: '100%', width: pct+'%', borderRadius: 99, transition: 'width 0.6s' }} />
                 </div>
               </div>
               {goals.map(goal => {
@@ -271,10 +271,10 @@ export default function DashboardPage() {
                         <div style={{ fontWeight: 700, fontSize: 14 }}>{goal.title}</div>
                         <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{goal.description}</div>
                       </div>
-                      <div style={{ fontSize: 18, fontWeight: 800, color: '#0a7c6e', fontFamily: "'Playfair Display',serif" }}>{gp}%</div>
+                      <div style={{ fontSize: 18, fontWeight: 800, color: '#0a7c6e', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>{gp}%</div>
                     </div>
                     <div style={{ background: '#f1f5f9', borderRadius: 99, height: 5, marginBottom: 12 }}>
-                      <div style={{ background: 'linear-gradient(90deg,#0a7c6e,#0e6ba8)', height: '100%', width: gp+'%', borderRadius: 99 }} />
+                      <div style={{ background: 'linear-gradient(90deg,#4815E1,#DF346D)', height: '100%', width: gp+'%', borderRadius: 99 }} />
                     </div>
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                       {goal.tactics.map(t => <span key={t.id} style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', padding: '3px 10px', borderRadius: 99, fontSize: 11, color: '#64748b' }}>{t.title} · {t.tasks.length}</span>)}
@@ -288,17 +288,17 @@ export default function DashboardPage() {
           {/* STRATEGY */}
           {view === 'strategy' && (
             <div>
-              <h2 style={{ margin: '0 0 4px', fontFamily: "'Playfair Display',serif", fontSize: 26 }}>Strategic Goals</h2>
+              <h2 style={{ margin: '0 0 4px', fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 26 }}>Strategic Goals</h2>
               <p style={{ margin: '0 0 28px', color: '#64748b', fontSize: 14 }}>Goals → Tactics → Tasks{!canEdit && ' · Read-only access'}</p>
               {goals.map(goal => (
                 <div key={goal.id} style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 16, marginBottom: 20, overflow: 'hidden' }}>
                   <div onClick={() => setExpandedGoals(e => ({ ...e, [goal.id]: !e[goal.id] }))}
                     style={{ padding: '16px 22px', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', background: '#fafcff', borderBottom: expandedGoals[goal.id] ? '1.5px solid #f1f5f9' : 'none' }}>
-                    <div style={{ width: 30, height: 30, borderRadius: 8, background: 'linear-gradient(135deg,#0a7c6e,#0e6ba8)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12 }}>
+                    <div style={{ width: 30, height: 30, borderRadius: 8, background: 'linear-gradient(135deg,#4815E1,#DF346D)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12 }}>
                       {expandedGoals[goal.id] ? '▾' : '▸'}
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 15, fontWeight: 700 }}>{goal.title}</div>
+                      <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 15, fontWeight: 700 }}>{goal.title}</div>
                       <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 1 }}>{goal.description}</div>
                     </div>
                     {canEdit && <div style={{ display: 'flex', gap: 8 }} onClick={e => e.stopPropagation()}>
@@ -340,7 +340,7 @@ export default function DashboardPage() {
           {/* RACI */}
           {view === 'raci' && (
             <div>
-              <h2 style={{ margin: '0 0 4px', fontFamily: "'Playfair Display',serif", fontSize: 26 }}>RACI Matrix</h2>
+              <h2 style={{ margin: '0 0 4px', fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 26 }}>RACI Matrix</h2>
               <p style={{ margin: '0 0 16px', color: '#64748b', fontSize: 14 }}>{canEdit ? 'Click any cell to cycle: R → A → C → I' : 'Read-only view'}</p>
               <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexWrap: 'wrap' }}>
                 {Object.entries(RACI_LABELS).map(([k, v]) => (
