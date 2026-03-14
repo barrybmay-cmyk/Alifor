@@ -1,47 +1,42 @@
-// src/lib/ThemeContext.jsx
 import { createContext, useContext, useState, useEffect } from 'react'
-import { supabase } from './supabase'
 
 const GOOGLE_FONTS = [
-  'Playfair Display', 'DM Serif Display', 'Cormorant Garamond',
-  'Outfit', 'DM Sans', 'Plus Jakarta Sans', 'Sora', 'Nunito',
-  'Lato', 'Raleway', 'Josefin Sans', 'Libre Baskerville'
+  'Plus Jakarta Sans', 'DM Sans', 'Sora', 'Outfit', 'Nunito',
+  'Raleway', 'Josefin Sans', 'Lato', 'Poppins', 'Manrope',
+  'Inter', 'Work Sans'
 ]
 
+// Alifor brand colours extracted from official SVG logo
 const DEFAULT_THEME = {
-  // Brand
   appName: 'Alifor',
   appTagline: 'Clinical Operating System',
-  logoUrl: '',
-  faviconUrl: '',
+  logoUrl: '/alifor-logo.svg',
 
-  // Colors
-  primaryStart: '#0a7c6e',
-  primaryEnd: '#0e6ba8',
-  accentColor: '#2dd4bf',
-  sidebarBg: '#0f172a',
-  sidebarText: '#64748b',
-  sidebarActiveText: '#2dd4bf',
-  pageBg: '#f8fafc',
+  primaryStart: '#4815E1',
+  primaryMid: '#B841E3',
+  primaryEnd: '#DF346D',
+  accentColor: '#67e8f9',
+
+  sidebarBg: '#0f0a1e',
+  sidebarText: '#94a3b8',
+  sidebarActiveText: '#B841E3',
+  pageBg: '#f5f3ff',
   cardBg: '#ffffff',
-  cardBorder: '#e2e8f0',
-  textPrimary: '#0f172a',
-  textMuted: '#94a3b8',
+  cardBorder: '#ede9fe',
+  textPrimary: '#1e1035',
+  textMuted: '#7c6f9e',
 
-  // Typography
-  displayFont: 'Playfair Display',
-  bodyFont: 'Outfit',
+  displayFont: 'Plus Jakarta Sans',
+  bodyFont: 'Plus Jakarta Sans',
   baseFontSize: '14',
 
-  // Layout
   sidebarWidth: '240',
   borderRadius: '12',
   cardShadow: 'soft',
 
-  // Login page
-  loginBg1: '#f0fdf9',
-  loginBg2: '#eff6ff',
-  loginBg3: '#f5f3ff',
+  loginBg1: '#f5f3ff',
+  loginBg2: '#fdf2f8',
+  loginBg3: '#eef2ff',
 }
 
 const ThemeContext = createContext(null)
@@ -67,7 +62,6 @@ export function ThemeProvider({ children }) {
     setThemeState(DEFAULT_THEME)
   }
 
-  // Inject Google Fonts dynamically
   useEffect(() => {
     const fonts = [theme.displayFont, theme.bodyFont].filter(Boolean)
     const existing = document.getElementById('alifor-fonts')
@@ -79,10 +73,10 @@ export function ThemeProvider({ children }) {
     document.head.appendChild(link)
   }, [theme.displayFont, theme.bodyFont])
 
-  // Apply CSS variables globally
   useEffect(() => {
     const root = document.documentElement
     root.style.setProperty('--primary-start', theme.primaryStart)
+    root.style.setProperty('--primary-mid', theme.primaryMid || theme.primaryEnd)
     root.style.setProperty('--primary-end', theme.primaryEnd)
     root.style.setProperty('--accent', theme.accentColor)
     root.style.setProperty('--sidebar-bg', theme.sidebarBg)
@@ -95,7 +89,6 @@ export function ThemeProvider({ children }) {
     root.style.setProperty('--sidebar-width', theme.sidebarWidth + 'px')
     root.style.setProperty('--display-font', `'${theme.displayFont}', serif`)
     root.style.setProperty('--body-font', `'${theme.bodyFont}', sans-serif`)
-    root.style.setProperty('--font-size', theme.baseFontSize + 'px')
     document.body.style.fontFamily = `'${theme.bodyFont}', sans-serif`
     document.body.style.background = theme.pageBg
   }, [theme])
